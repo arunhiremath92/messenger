@@ -56,6 +56,11 @@ func NewDb() (*Db, error) {
 		return nil, fmt.Errorf("failed to connect to db %s", err.Error())
 	}
 
+	err = SetupDb(conn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup db %s", err.Error())
+	}
+
 	return &Db{
 		mDb: conn,
 	}, nil

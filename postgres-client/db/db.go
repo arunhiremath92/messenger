@@ -40,6 +40,13 @@ func NewDb() (*Db, error) {
 		return nil, fmt.Errorf("failed to connect to the database %s", err)
 	}
 	fmt.Println("connected to database successfully!")
+	// set up the db instance
+
+	err = SetupDb(db)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Db{
 		pDb: db,
 	}, nil

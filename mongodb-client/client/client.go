@@ -61,7 +61,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (srv *Server) StartHttpServer() {
+func (srv *Server) StartHttpServer() error {
 	fmt.Println("starting the server instance")
 	srv.mux.Handle("/obj/message/create", LoggingMiddleware(http.HandlerFunc(srv.MessageCreateHandler)))
 	fmt.Println("registering obj/message/create")
@@ -74,8 +74,10 @@ func (srv *Server) StartHttpServer() {
 	})))
 	if err := srv.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		fmt.Printf("ListenAndServe error: %v\n", err)
+		fmt.Println("closing the http-connection")
+		return err
 	}
-	fmt.Println("closing the http-connection")
+	return nil
 }
 
 func (srv *Server) StopServer() {
@@ -174,7 +176,11 @@ func main() {
 
 	go func() {
 		server := NewServerInstance()
-		server.StartHttpServer()
+		err := server.StartHttpServer()
+		if err != nil {
+			fmt.Println("failed to start the http server", err)
+			stop <- os.Interrupt
+		}
 	}()
 
 	<-stop // Wait for signal
