@@ -20,7 +20,8 @@ func SetupDb(mDb *mongo.Client) error {
 			"body":            bson.M{"bsonType": "string"},
 			"is_deleted":      bson.M{"bsonType": "bool"},
 			"attachments": bson.M{
-				"bsonType": "array",
+				// Use bson.A (A for Array) to ensure the driver encodes it correctly for MongoDB
+				"bsonType": bson.A{"array", "null"},
 				"items": bson.M{
 					"bsonType": "object",
 					"required": []string{"url"},
@@ -38,8 +39,14 @@ func SetupDb(mDb *mongo.Client) error {
 	if err != nil {
 		// Check if it's a "NamespaceExists" error (code 48)
 		if cmdErr, ok := err.(mongo.CommandError); ok && cmdErr.Code == 48 {
+			validator := bson.M{"$jsonSchema": jsonSchema}
 			fmt.Println("Collection 'messages' already exists, skipping creation.")
-			return nil
+			err := database.RunCommand(context.TODO(), bson.D{
+				{Key: "collMod", Value: COLLECTIONS},
+				{Key: "validator", Value: validator},
+				{Key: "validationLevel", Value: "strict"},
+			})
+			return err.Err()
 		}
 		// It's a real error (like a timeout or auth failure)
 		return fmt.Errorf("failed to create collection: %w", err)

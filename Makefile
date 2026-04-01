@@ -8,10 +8,12 @@ prepare:
 	mkdir -p $(BIN_DIR)
 
 pgclient: prepare
-	cd postgres-client && go build -o $(BIN_DIR)/pgclient client/client.go
+	cd $(CURDIR)/postgres-client && go mod tidy
+	cd $(CURDIR)/postgres-client && go build -o $(BIN_DIR)/pgclient client/client.go
 
 mgclient: prepare
-	cd mongodb-client && go build -o $(BIN_DIR)/mgclient client/client.go
+	cd $(CURDIR)/mongodb-client && go mod tidy
+	cd $(CURDIR)/mongodb-client && go build -o $(BIN_DIR)/mgclient client/client.go
 
 clean:
 	rm -rf $(BIN_DIR)
