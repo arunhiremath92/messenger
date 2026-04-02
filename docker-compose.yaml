@@ -1,0 +1,37 @@
+services:
+  mongodb:
+    image: mongo:6.0 # Use a specific version for stability
+    container_name: mongo-db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: messenger
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - my_network
+
+  messenger:
+      # Use 'build .' if you have a Dockerfile for your app, or 'image: your_app_image_name'
+      build: . 
+      container_name: messenger
+      depends_on:
+        - mongodb
+      environment:
+        # Use the service name 'mongodb' as the host in the connection string
+        MONGODB_URI: mongodb://user:password@mongodb:27017/messenger?authSource=admin
+      ports:
+        - "6000:6000" # Map your app's port
+      networks:
+        - my_network
+
+volumes:
+  mongodb-data:
+    name: mongodb-data
+
+networks:
+  my_network:
+    name: my_network
